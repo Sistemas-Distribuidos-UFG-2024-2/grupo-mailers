@@ -4,10 +4,11 @@ REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
 REDIS_QUEUE = 'email_queue'
 
-# Lista de servidores de e-mail disponíveis
+# Lista de URLs dos servidores de e-mail para balanceamento de carga
 EMAIL_SERVERS = [
-    {'host': 'localhost', 'port': 1025},  # Servidor de e-mail 1
-    # Adicione outros servidores aqui para balanceamento
+    'http://localhost:5001/enviar_lote',  # Servidor de envio de e-mail 1
+    'http://localhost:5002/enviar_lote',  # Servidor de envio de e-mail 2
+    # Adicione mais servidores se necessário
 ]
 
 BALANCE_STRATEGY = 'round_robin'  # Estratégia de balanceamento
