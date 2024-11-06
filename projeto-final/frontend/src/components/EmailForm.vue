@@ -45,11 +45,12 @@ export default {
         // Dados para a requisição
         const dados = {
           lista_emails: emails,
-          corpo_email: this.corpoEmail
+          assunto: "Assunto do E-mail",  // Você pode adicionar um campo de input para o assunto também
+          corpo: this.corpoEmail
         };
 
-        // Fazer a requisição para a API
-        const response = await axios.post("http://localhost:5000/enviar", dados);
+        // Enviar requisição para o middleware (garanta que a porta esteja correta)
+        const response = await axios.post("http://localhost:5000/enviar_lote", dados);
 
         // Exibir a mensagem de sucesso
         this.mensagem = response.data.message || "E-mails enviados com sucesso!";
