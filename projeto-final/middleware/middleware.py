@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import redis
 import json
 import requests
@@ -6,6 +7,7 @@ import time
 from config import REDIS_HOST, REDIS_PORT, REDIS_QUEUE, EMAIL_SERVERS, BALANCE_STRATEGY
 
 app = Flask(__name__)
+CORS(app)
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 server_index = 0
 
