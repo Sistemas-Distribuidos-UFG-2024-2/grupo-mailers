@@ -36,6 +36,13 @@ pip install -r requirements.txt
 python3 heartbeat.py
 ````
 
+6. Redis 
+- Duas opções: 
+   - instalar e utilizar o redis instalado na sua maquina
+   - criar uma instancia docker:
+      - ``docker pull redis``
+      - ``docker run --name redis -p 6379:6379 -d redis``
+
 6. Acesse a aplicação **http://localhost:8080/**
 
 <br>
