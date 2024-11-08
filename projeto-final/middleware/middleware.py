@@ -9,26 +9,28 @@ from config import REDIS_HOST, REDIS_PORT, REDIS_QUEUE, EMAIL_SERVERS, BALANCE_S
 app = Flask(__name__)
 CORS(app)
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
-server_index = 0
 
-# Função para enfileirar os e-mails no Redis
+# Função para dividir e enfileirar os e-mails por lote, considerando os servidores disponíveis
 def enfileirar_email(lista_emails, assunto, corpo):
-    email_data = {
-        'lista_emails': lista_emails,
-        'assunto': assunto,
-        'corpo': corpo,
-    }
-    redis_client.rpush(REDIS_QUEUE, json.dumps(email_data))
-    print(f"E-mails enfileirados com sucesso!")
+    num_servidores = len(EMAIL_SERVERS)
+    # Divide os e-mails em lotes iguais, distribuindo entre os servidores
+    lotes_emails = [lista_emails[i::num_servidores] for i in range(num_servidores)]
 
-# Função para escolher o próximo servidor de e-mail usando a estratégia de balanceamento de carga
-def obter_servidor():
-    global server_index
-    if BALANCE_STRATEGY == 'round_robin':
-        servidor = EMAIL_SERVERS[server_index]
-        server_index = (server_index + 1) % len(EMAIL_SERVERS)
-        return servidor
-    return EMAIL_SERVERS[0]
+    for i, lote in enumerate(lotes_emails):
+        if lote:
+            # Enfileira cada lote com o índice para associar ao servidor
+            email_data = {
+                'lista_emails': lote,
+                'assunto': assunto,
+                'corpo': corpo,
+                'servidor_index': i  # Índice para balancear os servidores
+            }
+            redis_client.rpush(REDIS_QUEUE, json.dumps(email_data))
+            print(f"Lote de e-mails enfileirado para o servidor {i + 1}")
+
+# Função para escolher o servidor baseado no índice
+def obter_servidor(index):
+    return EMAIL_SERVERS[index % len(EMAIL_SERVERS)]
 
 # Função para processar a fila de e-mails
 def processar_fila():
@@ -36,7 +38,8 @@ def processar_fila():
         email_data = redis_client.lpop(REDIS_QUEUE)
         if email_data:
             email_data = json.loads(email_data)
-            servidor = obter_servidor()
+            servidor_index = email_data['servidor_index']
+            servidor = obter_servidor(servidor_index)  # Obtém o servidor baseado no índice
             try:
                 response = requests.post(servidor, json=email_data)
                 print(f"Resposta do servidor {servidor}: {response.status_code}")
@@ -54,7 +57,7 @@ def receber_requisicao_frontend():
     assunto = data.get('assunto', 'Sem Assunto')
     corpo = data.get('corpo', '')
 
-    # Enfileira os e-mails recebidos
+    # Enfileira os e-mails dividindo em lotes
     enfileirar_email(lista_emails, assunto, corpo)
     
     return jsonify({'message': 'E-mails enfileirados com sucesso!'}), 200

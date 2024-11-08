@@ -8,6 +8,7 @@ REDIS_QUEUE = 'email_queue'
 EMAIL_SERVERS = [
     'http://localhost:5001/enviar_lote',  # Servidor de envio de e-mail 1
     'http://localhost:5002/enviar_lote',  # Servidor de envio de e-mail 2
+    'http://localhost:5003/enviar_lote',  # Servidor de envio de e-mail 3
     # Adicione mais servidores se necessário
 ]
 
