@@ -1,5 +1,3 @@
-# email_service.py
-
 from flask import Flask, request, jsonify
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -9,6 +7,11 @@ import time
 from config import SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, RETRY_LIMIT, RETRY_DELAY, CIRCUIT_BREAKER_THRESHOLD, CIRCUIT_BREAKER_TIMEOUT
 
 app = Flask(__name__)
+
+# Endpoint para verificar se o servidor está ativo (heartbeat)
+@app.route('/heartbeat', methods=['GET'])
+def heartbeat():
+    return "Servidor de e-mail está ativo", 200
 
 class CircuitBreaker:
     def __init__(self):

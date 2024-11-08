@@ -1,3 +1,5 @@
+# middleware.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import redis
@@ -10,10 +12,38 @@ app = Flask(__name__)
 CORS(app)
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
+# Lista de servidores ativos
+servidores_ativos = []
+
+# Função para verificar o status dos servidores de heartbeat
+def verificar_heartbeats():
+    while True:
+        for servidor in EMAIL_SERVERS:
+            try:
+                response = requests.get(f"{servidor}/heartbeat", timeout=3)
+                if response.status_code == 200:
+                    if servidor not in servidores_ativos:
+                        servidores_ativos.append(servidor)
+                        print(f"Servidor {servidor} está ativo.")
+                else:
+                    if servidor in servidores_ativos:
+                        servidores_ativos.remove(servidor)
+                        print(f"Servidor {servidor} foi removido.")
+            except requests.RequestException:
+                if servidor in servidores_ativos:
+                    servidores_ativos.remove(servidor)
+                    print(f"Servidor {servidor} está inativo.")
+        
+        time.sleep(10)  # Verificar status a cada 10 segundos
+
 # Função para dividir e enfileirar os e-mails por lote, considerando os servidores disponíveis
 def enfileirar_email(lista_emails, assunto, corpo):
-    num_servidores = len(EMAIL_SERVERS)
-    # Divide os e-mails em lotes iguais, distribuindo entre os servidores
+    num_servidores = len(servidores_ativos)  # Usa os servidores ativos
+    if num_servidores == 0:
+        print("Erro: Nenhum servidor de e-mail disponível.")
+        return
+
+    # Divide os e-mails em lotes
     lotes_emails = [lista_emails[i::num_servidores] for i in range(num_servidores)]
 
     for i, lote in enumerate(lotes_emails):
@@ -30,7 +60,11 @@ def enfileirar_email(lista_emails, assunto, corpo):
 
 # Função para escolher o servidor baseado no índice
 def obter_servidor(index):
-    return EMAIL_SERVERS[index % len(EMAIL_SERVERS)]
+    # Usa servidores ativos
+    if servidores_ativos:
+        return servidores_ativos[index % len(servidores_ativos)]
+    else:
+        return None
 
 # Função para processar a fila de e-mails
 def processar_fila():
@@ -38,10 +72,12 @@ def processar_fila():
         email_data = redis_client.lpop(REDIS_QUEUE)
         if email_data:
             email_data = json.loads(email_data)
-            servidor_index = email_data['servidor_index']
-            servidor = obter_servidor(servidor_index)  # Obtém o servidor baseado no índice
+            # Calcular o índice baseado no número de requisições processadas
+            index = redis_client.llen(REDIS_QUEUE)  # Tamanho da fila pode ser usado para o índice
+            servidor = obter_servidor(index)
+            url_servidor = f"{servidor}/enviar_lote"  # Adiciona /enviar_lote à URL
             try:
-                response = requests.post(servidor, json=email_data)
+                response = requests.post(url_servidor, json=email_data)
                 print(f"Resposta do servidor {servidor}: {response.status_code}")
             except requests.RequestException as e:
                 print(f"Erro ao se comunicar com {servidor}: {e}")
@@ -62,11 +98,18 @@ def receber_requisicao_frontend():
     
     return jsonify({'message': 'E-mails enfileirados com sucesso!'}), 200
 
-# Inicia o processamento da fila em um processo paralelo
+# Inicia o processamento da fila e verificação de heartbeats em processos paralelos
 from threading import Thread
-thread = Thread(target=processar_fila)
-thread.daemon = True
-thread.start()
+
+# Verifica os heartbeats a cada 10 segundos
+heartbeat_thread = Thread(target=verificar_heartbeats)
+heartbeat_thread.daemon = True
+heartbeat_thread.start()
+
+# Inicia o processamento da fila de e-mails
+queue_thread = Thread(target=processar_fila)
+queue_thread.daemon = True
+queue_thread.start()
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)  # Middleware escutando na porta 5000
