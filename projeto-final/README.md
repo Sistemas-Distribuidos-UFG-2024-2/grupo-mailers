@@ -11,9 +11,9 @@ npm run serve
 ````
 cd backend
 pip install -r requirements.txt
-python3 email_service.py --port=5001
-python3 email_service.py --port=5002
-python3 email_service.py --port=5003
+python3 email_service.py --port=5001 --smtp_port=1025
+python3 email_service.py --port=5002 --smtp_port=1026
+python3 email_service.py --port=5003 --smtp_port=1027
 # obs: é possível configurar vários servidores na arquitetura
 ````
 
@@ -24,9 +24,12 @@ pip install -r requirements.txt
 python3 middleware.py
 ````
 
-4. Inicie o Servidor SMTP Local
+4. Inicie os Servidores SMTPs Locais
 ````
 python3 -m smtpd -c DebuggingServer -n localhost:1025
+python3 -m smtpd -c DebuggingServer -n localhost:1026
+python3 -m smtpd -c DebuggingServer -n localhost:1027
+# obs: é possível configurar vários servidores na arquitetura
 ````
 
 5. Heartbeats

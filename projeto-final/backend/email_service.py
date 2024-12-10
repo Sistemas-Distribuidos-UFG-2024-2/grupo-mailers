@@ -49,7 +49,7 @@ def enviar_email(destinatario, assunto, corpo, formato_html=False):
     tentativas = 0
     while tentativas < RETRY_LIMIT:
         try:
-            servidor = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            servidor = smtplib.SMTP(SMTP_SERVER, args.smtp_port)
             mensagem = MIMEMultipart()
             mensagem['From'] = SMTP_USER
             mensagem['To'] = destinatario
@@ -92,6 +92,7 @@ def enviar_lote():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Servidor de Envio de E-mails")
     parser.add_argument('--port', type=int, default=5001, help='Porta para rodar o servidor')
+    parser.add_argument('--smtp_port', type=int, default=5001, help='Porta do servidor SMTP designado')
     args = parser.parse_args()
 
     app.run(host='0.0.0.0', port=args.port)
