@@ -109,3 +109,6 @@ projeto_envio_emails/
 - **Balanceamento de carga**: A carga de envio de e-mails é distribuída entre múltiplos servidores de envio de e-mail, garantindo melhor desempenho e escalabilidade.
 - **Monitoramento de servidores de e-mail (Heartbeat)**: O sistema verifica periodicamente quais servidores estão disponíveis e ajusta a distribuição da carga dinamicamente.
 - **Retry e Circuit Breaker**: Se um servidor falhar, o sistema tenta reprocessar a solicitação com um atraso exponencial, e se o servidor continuar com falhas, ele entra em um estado de "circuito aberto".
+
+### Apresentação do projeto:
+https://www.youtube.com/watch?v=MaU5SGy7Ppk
