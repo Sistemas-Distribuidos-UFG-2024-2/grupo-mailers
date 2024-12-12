@@ -98,7 +98,7 @@ def receber_requisicao_frontend():
     corpo = data.get('corpo', '')
 
     enfileirar_email(lista_emails, assunto, corpo)
-    return jsonify({'message': 'E-mails enfileirados com sucesso!'}), 200
+    return jsonify({'message': 'E-mails enviados com sucesso!'}), 200
 
 # Inicia as threads para verificar heartbeats e processar a fila
 from threading import Thread
