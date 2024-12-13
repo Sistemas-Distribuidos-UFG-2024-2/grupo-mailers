@@ -80,6 +80,10 @@ projeto_envio_emails/
 └── .gitignore                # Arquivo de exclusão para Git
 ````
 
+### Arquitetura do sistema
+
+<img src="https://raw.githubusercontent.com/Sistemas-Distribuidos-UFG-2024-2/grupo-mailers/037689f4bb44a6c56b837ef1336e65e9e84f4c2f/projeto-final/diagrama-arquitetura-sistema.png"></img>
+
 ### Componentes Implementados
 
 1. **Frontend (Vue.js)**:
